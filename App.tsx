@@ -25,12 +25,7 @@ const App = () => {
       <Stack.Group>
         <Stack.Screen name="Home" options={{
           headerShown: false,
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerRight: () => {
-            const navigation = useNavigation()
-            return <Button title="Settings" onPress={() => navigation.navigate("Settings")} />
-          }
+          headerShadowVisible: false
         }}>
           {() => <Main savedCities={savedCities} />}
         </Stack.Screen>
