@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
-import {Alert, Button, Text} from 'react-native';
+import {Alert, Text} from 'react-native';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {createStackNavigator} from "@react-navigation/stack";
-// import Swipeout from 'react-native-swipeout';
 import Settings from "./src/Settings";
 import Main from "./src/Main";
 
