@@ -1,24 +1,30 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
-import {Button, Linking, RefreshControl, ScrollView, StyleSheet, View} from "react-native";
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import { AppState, Button, Linking, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import WeathersView from "./WeathersView";
-import {useNavigation} from "@react-navigation/native";
-import {SCREEN_WIDTH} from "./DeviceProps";
+import { useNavigation } from "@react-navigation/native";
+import { SCREEN_WIDTH } from "./DeviceProps";
 
-export const Main: React.FC<{ savedCities: City[] }> = ({savedCities}) => {
+export const Main: React.FC<{ savedCities: City[] }> = ({ savedCities }) => {
   const [locationPermission, setLocationPermission] = useState(false)
+  const [position, setPosition] = useState<{ latitude: number, longitude: number }>()
   const [latitude, setLatitude] = useState<number>()
   const [longitude, setLongitude] = useState<number>();
-  
+
+  const appState = useRef(AppState.currentState);
+
+
   const setCurrentLocation = async () => {
     try {
-      const {granted} = await Location.requestForegroundPermissionsAsync()
+      const { granted } = await Location.requestForegroundPermissionsAsync()
       setLocationPermission(granted)
-      
+      console.log(granted)
+
       if (granted) {
-        const currentLocation = await Location.getCurrentPositionAsync({accuracy: 3})
+        const currentLocation = await Location.getCurrentPositionAsync({ accuracy: 3 })
         const coords = currentLocation.coords
+        setPosition(coords)
         setLatitude(coords.latitude)
         setLongitude(coords.longitude)
       }
@@ -26,20 +32,20 @@ export const Main: React.FC<{ savedCities: City[] }> = ({savedCities}) => {
       console.log(e)
     }
   }
-  
+
   useEffect(() => {
     setCurrentLocation()
   }, []);
-  
+
   const navigation = useNavigation()
-  
+
   return (
     <View style={styles.container}>
       <SafeAreaProvider>
         <ScrollView pagingEnabled
-                    indicatorStyle="white"
-                    refreshControl={<RefreshControl refreshing={false}
-                                                    onRefresh={() => navigation.navigate("Settings")} />}>
+          indicatorStyle="white"
+          refreshControl={<RefreshControl refreshing={false}
+            onRefresh={() => navigation.navigate("Settings")} />}>
           {
             locationPermission ?
               <WeathersView latitude={latitude} longitude={longitude} /> :

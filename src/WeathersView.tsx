@@ -1,57 +1,63 @@
-import React, {useEffect, useState} from "react";
-import {ActivityIndicator, Image, ScrollView, StyleSheet, Text, View} from "react-native";
-import {SCREEN_WIDTH, SCREEN_HEIGHT} from "./DeviceProps";
-import {fetchCity, fetchWeather} from "./Fetch";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from "./DeviceProps";
+import { fetchCity, fetchWeather } from "./Fetch";
 
 type WeathersViewProps = { name?: string, latitude?: number, longitude?: number, children?: React.ReactElement }
 
-const WeathersView: React.FC<WeathersViewProps> = ({name, latitude, longitude, children}) => {
+const temperature = (value: number) => `${Math.round(value)}°C`
+
+const WeathersView: React.FC<WeathersViewProps> = ({ name, latitude, longitude, children }) => {
   const [city, setCity] = useState<string | undefined>(name || undefined)
   const [days, setDays] = useState<any[]>([])
-  
+
+  const safeAreaTop = useSafeAreaInsets().top
+  const safeAreeBottom = useSafeAreaInsets().bottom
+
+  const safeareaHeight = useSafeAreaInsets().bottom + useSafeAreaInsets().top
+
   useEffect(() => {
     if (!latitude || !longitude) return
-    
+
     (async () => {
-      const locationWeather = await fetchWeather({latitude, longitude})
+      const locationWeather = await fetchWeather({ latitude, longitude })
       locationWeather && locationWeather.daily && setDays(locationWeather.daily)
     })()
-    
+
     !city && (async () => {
-      const fetchedCity = await fetchCity({latitude, longitude})
+      const fetchedCity = await fetchCity({ latitude, longitude })
       fetchedCity && setCity(fetchedCity)
     })()
   }, [latitude, longitude]);
-  
+
   return (
-    <View style={{height: SCREEN_HEIGHT, alignItems: "center", flex: 1}}>
-      <View style={[defaultStyles.fullWidth, styles.city, {flex: 3}]}>
+    <View style={{ height: SCREEN_HEIGHT - safeareaHeight, alignItems: "center", flex: 1, marginTop: safeAreaTop, marginBottom: safeAreeBottom }}>
+      <View style={[defaultStyles.fullWidth, styles.city, { flex: 3 }]}>
         <Text style={styles.cityName}>{city || "Loading"}</Text>
       </View>
-      <View style={{flex: 8}}>
+      <View style={{ flex: 8 }}>
         <ScrollView pagingEnabled horizontal
-                    showsHorizontalScrollIndicator={false}>
-          
+          showsHorizontalScrollIndicator={false}>
           {children || (days.length === 0 ?
             <View style={styles.weatherView}>
               <ActivityIndicator color="white" size="large" />
             </View> :
             days.map((day: any, index) => {
-              const date = new Date(day.dt * 1000).toLocaleDateString('default', {month: 'long', day: "numeric"})
+              const date = new Date(day.dt * 1000).toLocaleDateString('default', { month: 'long', day: "numeric" })
               return (<View key={index} style={styles.weatherView}>
                 <Text style={[defaultStyles.lightText, styles.date]}>{date}</Text>
-                <Image style={{width: 200, height: 200}}
-                       source={{uri: `http://openweathermap.org/img/wn/${day.weather[0].icon}@4x.png`}} />
+                <Image style={{ width: 200, height: 200 }}
+                  source={{ uri: `http://openweathermap.org/img/wn/${day.weather[0].icon}@4x.png` }} />
                 <Text style={[defaultStyles.lightText, styles.details]}>{day.weather[0].description}</Text>
                 <Text style={[defaultStyles.boldText, styles.mainTemp]}>
-                  {Math.round(day.temp.day)}<Text style={{fontSize: 50}}>°C</Text>
+                  {Math.round(day.temp.day)}<Text style={{ fontSize: 50 }}>°C</Text>
                 </Text>
                 <Text style={[defaultStyles.lightText, styles.details]}>
-                  {Math.round(day.temp.min)}°C / {Math.round(day.temp.max)}°C
+                  {temperature(day.temp.min)} / {temperature(day.temp.max)}
                 </Text>
               </View>)
             }))}
-          
         </ScrollView>
       </View>
     </View>
@@ -79,7 +85,7 @@ const styles = StyleSheet.create({
   city: {
     alignItems: "center",
     justifyContent: "center",
-    top: 70
+    // top: 70
   },
   cityName: {
     color: "#fff",
